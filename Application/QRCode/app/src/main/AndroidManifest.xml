@@ -27,5 +27,5 @@
             android:screenOrientation="fullSensor"
             tools:replace="screenOrientation" />
     </application>
-
+    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>
