@@ -1,4 +1,5 @@
 from dynamixel_wrapper import MotorHandler
+import threading
 
 DEVICE_NAME     = '/dev/ttyUSB0'
 LEFT_MOTOR_ID   = 1
@@ -9,6 +10,9 @@ BAUDRATE        = 1000000
 class WC_Robo:
     def __init__(self):
         self.motorHandler = MotorHandler(DEVICE_NAME, MOTOR_IDS, BAUDRATE)
+
+    def setTarget(self, int):
+        pass
 
     def move_forward(self, velocity: int):
         self.motorHandler.setVelocity(LEFT_MOTOR_ID, velocity)
@@ -26,3 +30,12 @@ class WC_Robo:
     def move_stop(self):
         self.motorHandler.setTorque(LEFT_MOTOR_ID, False)
         self.motorHandler.setTorque(RIGHT_MOTOR_ID, False)
+    
+    def start_Charging(self):
+        pass
+
+    def __callback_color_code(self):
+        pass
+
+    def start_SensorThread(self):
+        pass
