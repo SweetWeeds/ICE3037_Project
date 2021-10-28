@@ -27,8 +27,11 @@ HANDLING_TIME = 0.5
 
 class WC_Robo:
     def __init__(self) -> None:
-        # Status
+        # Member Variables
         self.status = STATUS['STOP']
+        self.line_sensor_val = list
+        self.color_sensor_val = 'E'
+        self.ultra_sonic_val = 0
 
         # DB Manager
         self.dbm = DB_Manager()
@@ -47,6 +50,10 @@ class WC_Robo:
         self.main_thread_inst = threading.Thread(group=self.__main_thread)
         self.db_listener_inst = threading.Thread(group=self.__db_listener_thread)
 
+    def __read_sensors(self):
+        self.line_sensor_val    = self.line_sensor.read()
+        self.color_sensor_val   = self.color_sensor.read()
+        self.ultra_sonic_val    = self.ultra_sonic.read()
 
     ## Start of motor control Functions ##
     def __moveForward(self, velocity: int = 100) -> None:
@@ -94,6 +101,9 @@ class WC_Robo:
     def __db_listener_thread(self):
         pass
 
+    def __moving(self):
+        self.__read_sensors()   # Read sensor values
+
     # Main thread
     def __main_thread(self):
         while(True):
@@ -101,11 +111,11 @@ class WC_Robo:
             if (self.status == STATUS['STOP']):
                 continue    # IDLING
             elif (self.status == STATUS['MOVING']):
-                pass
+                self.__follow_line()                
             elif (self.status == STATUS['CHARGING']):
-                pass
+                self.__charging()
             elif (self.status == STATUS['COMPLETE']):
-                pass
+                self.__complete()
             else:
                 print(f"[ERROR] Status code is not matching in dictinoary. (STATUS_CODE:{self.status})")
                 pass
