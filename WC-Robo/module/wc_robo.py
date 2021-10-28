@@ -22,6 +22,7 @@ R = 0
 G = 1
 B = 2
 STATUS = { 'STOP': 0, 'MOVING': 1, 'CHARGING': 2, 'COMPLETE': 3, 'EXCEPTION': 4 }
+HANDLING_TIME = 0.5
 #POSITION = {'START': [0,0,0], 'A1': [R,G,R], 'A2': [R,G,B], 'A3': 3, 'A4': 4, 'B1', 'B2', 'B3', 'B4'}
 
 class WC_Robo:
@@ -46,8 +47,8 @@ class WC_Robo:
         self.main_thread_inst = threading.Thread(group=self.__main_thread)
         self.db_listener_inst = threading.Thread(group=self.__db_listener_thread)
 
-    ## Start of motor control Functions ##
 
+    ## Start of motor control Functions ##
     def __moveForward(self, velocity: int = 100) -> None:
         self.motorHandler.setVelocity(LEFT_MOTOR_ID,  velocity)
         self.motorHandler.setVelocity(RIGHT_MOTOR_ID, velocity)
@@ -58,12 +59,12 @@ class WC_Robo:
 
     def __moveLeft(self) -> None:
         old_vel = self.motorHandler.setVelocityOffset(LEFT_MOTOR_ID,  20)
-        time.sleep(0.5)
+        time.sleep(HANDLING_TIME)
         self.motorHandler.setVelocity(LEFT_MOTOR_ID, old_vel)
 
     def __moveRight(self) -> None:
         old_vel = self.motorHandler.setVelocityOffset(RIGHT_MOTOR_ID, 20)
-        time.sleep(0.5)
+        time.sleep(HANDLING_TIME)
         self.motorHandler.setVelocity(RIGHT_MOTOR_ID, old_vel)
     
     def __moveRotate(self, velocity: int = 100, clockwise: bool = True) -> None:
@@ -83,13 +84,13 @@ class WC_Robo:
     def __torqueEnable(self) -> None:
         self.motorHandler.setTorque(LEFT_MOTOR_ID,  True)
         self.motorHandler.setTorque(RIGHT_MOTOR_ID, True)
-
     ## End of motor control Functions ##
+
 
     ## Control of charger ##
     def __startCharging(self):
         pass
-    
+
     def __db_listener_thread(self):
         pass
 
@@ -108,6 +109,6 @@ class WC_Robo:
             else:
                 print(f"[ERROR] Status code is not matching in dictinoary. (STATUS_CODE:{self.status})")
                 pass
-    
+
     def run(self):
         self.main_thread_inst.start()
