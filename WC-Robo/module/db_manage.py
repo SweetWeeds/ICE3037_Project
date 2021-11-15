@@ -2,7 +2,7 @@ import pathlib
 import firebase_admin
 from firebase_admin import credentials, db
 
-key_file = pathlib.Path("../../Keys/qr-code-cd037-firebase-adminsdk-2hncv-5bef4fc373.json")
+key_file = pathlib.Path("/home/pi/workspace/ICE3037_Project/Keys/qr-code-cd037-firebase-adminsdk-2hncv-5bef4fc373.json")
 
 class DB_Manager:
     def __init__(self, key_file=key_file):

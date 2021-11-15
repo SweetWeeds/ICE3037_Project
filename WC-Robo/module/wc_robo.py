@@ -1,5 +1,9 @@
+import sys
 import threading
 import time
+import RPi.GPIO as GPIO
+
+sys.path.append("/home/pi/workspace/ICE3037_Project/WC-Robo/module")
 
 from dynamixel_wrapper import MotorHandler
 from db_manage import DB_Manager
@@ -15,7 +19,17 @@ MOTOR_IDS       = [LEFT_MOTOR_ID, RIGHT_MOTOR_ID]
 BAUDRATE        = 1000000
 
 # Sensor Settings
-LINE_SENSOR_PINS = []
+SERVO_PIN = 13
+LINE_SENSOR_PINS = [12,16,20,21]
+ULTRASONIC_SENSOR_PINS = { "UP" : {
+                                "Trig": 19,
+                                "Echo": 26
+                                },
+                           "FRONT" : {
+                                "Trig" : 5,
+                                "Echo" : 6
+                                }
+                        }
 
 # Constants
 R = 0
@@ -27,6 +41,9 @@ HANDLING_TIME = 0.5
 
 class WC_Robo:
     def __init__(self) -> None:
+        # Set GPIO Mode
+        GPIO.setmode(GPIO.BCM)
+        
         # Status
         self.status = STATUS['STOP']
 
@@ -38,14 +55,18 @@ class WC_Robo:
         self.__moveStop()
         self.__torqueEnable()
 
+        # Init Linear Servo
+        GPIO.setup(SERVO_PIN, GPIO.OUT)
+        self.linear_servo = GPIO.PWM(SERVO_PIN, 50)
+
         # Sensors
         self.line_sensor = LineSensor(LINE_SENSOR_PINS)
         self.color_sensor = ColorSensor()
-        self.ultra_sonic = UltraSonic()
+        self.ultra_sonic = UltraSonic(ULTRASONIC_SENSOR_PINS)
 
         # Threads
-        self.main_thread_inst = threading.Thread(group=self.__main_thread)
-        self.db_listener_inst = threading.Thread(group=self.__db_listener_thread)
+        #self.main_thread_inst = threading.Thread(group=self.__main_thread)
+        #self.db_listener_inst = threading.Thread(group=self.__db_listener_thread)
 
 
     ## Start of motor control Functions ##
@@ -94,6 +115,30 @@ class WC_Robo:
     def __db_listener_thread(self):
         pass
 
+    def sensorTest(self):
+        while (True):
+            print(f"line sensor: {self.line_sensor.read()}")
+            print(f"color sensor: {self.color_sensor.read()}")
+            print(f"ultra sonic: {self.ultra_sonic.reads()}")
+            time.sleep(1)
+
+    def motorTest(self):
+        while (True):
+            pass
+    
+    def servoTest(self):
+        self.linear_servo.ChangeDutyCycle(12.5) #최댓값
+        time.sleep(1)
+        self.linear_servo.ChangeDutyCycle(10.0)
+        time.sleep(1)
+        self.linear_servo.ChangeDutyCycle(7.5) #0
+        time.sleep(1)
+        self.linear_servo.ChangeDutyCycle(5.0)
+        time.sleep(1)
+        self.linear_servo.ChangeDutyCycle(2.5) #최솟값
+        time.sleep(1)
+        self.linear_servo.stop()
+
     # Main thread
     def __main_thread(self):
         while(True):
@@ -109,6 +154,11 @@ class WC_Robo:
             else:
                 print(f"[ERROR] Status code is not matching in dictinoary. (STATUS_CODE:{self.status})")
                 pass
+
+    def __line_tracing_thread(self):
+        while (True):
+            sensor_tmp = self.line_sensor.read()
+            
 
     def run(self):
         self.main_thread_inst.start()
