@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.widget.Toast;
 import android.widget.TextView;
 
@@ -15,67 +16,21 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.ValueEventListener;
-
-
+import com.hankyul.qrcode.ChargeStatus;
 
 public class StatusActivity extends AppCompatActivity {
     private DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-    TextView statusTextView;
-    TextView percentageTextView;
-    TextView voltageTextView;
-
-    @IgnoreExtraProperties
-    public class ChargeStatus {
-        public String chargingStatus;
-        public String chargePercentage;
-        public String voltageValue;
-
-        public ChargeStatus() {
-
-        }
-
-        public ChargeStatus(String chargePercentage, String voltageValue) {
-            this.chargePercentage = chargePercentage;
-            this.voltageValue = voltageValue;
-        }
-
-        public String getChargingStatus() {
-            return chargingStatus;
-        }
-
-        public void setChargingStatus(String chargingStatus) {
-            this.chargingStatus = chargingStatus;
-        }
-
-        public String getChargePercentage() {
-            return chargePercentage;
-        }
-
-        public void setChargePercentage(String chargePercentage) {
-            this.chargePercentage = chargePercentage;
-        }
-
-        public String getVoltageValue() {
-            return voltageValue;
-        }
-
-        public void setVoltageValue(String voltageValue) {
-            this.voltageValue = voltageValue;
-        }
-
-        @Override
-        public String toString() {
-            return "chargingStatus='" + chargingStatus + '\'' +
-                    "chargePercentage='" + chargePercentage + '\'' +
-                    "voltageValue='" + voltageValue + '\'' +
-                    '}';
-        }
-    }
+    private TextView statusTextView;
+    private TextView percentageTextView;
+    private TextView voltageTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_status);
+        statusTextView     = (TextView)findViewById(R.id.statusTextView);
+        percentageTextView = (TextView)findViewById(R.id.percentageTextView);
+        voltageTextView    = (TextView)findViewById(R.id.voltageTextView);
         readUser();
     }
 
@@ -88,8 +43,8 @@ public class StatusActivity extends AppCompatActivity {
                     ChargeStatus post = snapshot.getValue(ChargeStatus.class);
                     Toast.makeText(StatusActivity.this, "getData" + post.toString(), Toast.LENGTH_SHORT).show();
                     statusTextView.setText(post.getChargingStatus());
-                    percentageTextView.setText(post.getChargePercentage());
-                    voltageTextView.setText(post.getVoltageValue());
+                    percentageTextView.setText(post.getChargePercentage() + '%');
+                    voltageTextView.setText(post.getVoltageValue() + 'V');
                 } else {
                     Toast.makeText(StatusActivity.this, "데이터 없음...", Toast.LENGTH_SHORT).show();
                 }
