@@ -210,13 +210,6 @@ class WC_Robo:
                 self.__moveStop()               # Deactivate DYNAMIXEL
                 continue    # IDLING
             elif (self.status == STATUS['MOVING']):
-<<<<<<< HEAD
-                self.__follow_line()                
-            elif (self.status == STATUS['CHARGING']):
-                self.__charging()
-            elif (self.status == STATUS['COMPLETE']):
-                self.__complete()
-=======
                 self.line_trace_active = True   # Activate line tracing
                 self.setFront()
                 self.SetCoil()
@@ -227,7 +220,6 @@ class WC_Robo:
                 pass
             elif (self.status == STATUS['COMPLETE']):
                 self.dbm.setDefaultLocation()   # Set target location into home and go back to home location.
->>>>>>> 0519326cb2aeac97976bf8c86e4397f9269e2565
             else:
                 print(f"[ERROR] Status code is not matching in dictinoary. (STATUS_CODE:{self.status})")
                 pass
