@@ -2,7 +2,7 @@ import pathlib
 import firebase_admin
 from firebase_admin import credentials, db
 
-key_file = pathlib.Path("../../Keys/qr-code-cd037-firebase-adminsdk-2hncv-5bef4fc373.json")
+key_file = pathlib.Path("/home/pi/workspace/ICE3037_Project/Keys/qr-code-cd037-firebase-adminsdk-2hncv-5bef4fc373.json")
 
 class DB_Manager:
     def __init__(self, key_file=key_file):
@@ -11,19 +11,30 @@ class DB_Manager:
         }
         self.cred = credentials.Certificate(key_file)
         firebase_admin.initialize_app(self.cred, config)
+        self.update_signal = False  # Update signal for data update check
+        self.target_location = None
     
-    def GetData(self, placeId):
-        dir = db.reference(f"charge_request/{placeId}")
+    def __GetData(self, reference: str, placeId: str) -> None:
+        dir = db.reference(f"{reference}/{placeId}")
         return dir.get()
     
-    def SetData(self, placeId, value):
-        dir = db.reference(f"charge_request")
+    def __SetData(self, reference: str, placeId: str, value: str) -> None:
+        dir = db.reference(reference)
         dir.update({f"{placeId}":value})
 
-    def _callback(self, e):
-        #print(f"data:{e.data}, path:{e.path}, event_type:{e.event_type}")
-        pass
+    # Callback Function
+    def __callback(self, e) -> None:
+        print(f"data:{e.data}, path:{e.path}, event_type:{e.event_type}")
 
-    def startListen(self):
+    # Start listening 
+    def startListen(self) -> None:
         dir = db.reference(f"charge_request")
-        self.sess = dir.listen(self._callback)
+        self.sess = dir.listen(self.__callback)
+
+    # Send charging status
+    def sendChargeStatus(self, val: int) -> None:
+        self.__SetData("charge_status", str(val))
+
+    # Set default location    
+    def setDefaultLocation(self) -> None:
+        self.__SetData("charge_request", "Home")

@@ -1,4 +1,3 @@
-
 import os
 
 if os.name == 'nt':
@@ -52,8 +51,9 @@ class MotorHandler:
 
         # Get Motor IDs and set torque
         self.motors = dict()
+        self.IDs = IDs
         for idx, id in enumerate(self.IDs):
-            self.motors.update({id : Motor(id, 0)})
+            self.motors.update({id : 0})
             self.setTorque(id, True)
 
     def __error_check(self, dxl_comm_result, dxl_error):
@@ -67,7 +67,7 @@ class MotorHandler:
             en = 1
         else:
             en = 0
-        dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(self.portHandler, ID, en)
+        dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(self.portHandler, ID, ADDR_TORQUE_ENABLE, en)
         self.__error_check(dxl_comm_result, dxl_error)
 
     def setVelocity(self, ID: int, val: int) -> None:
