@@ -35,4 +35,3 @@ class UltraSonic:
             val = self.read(key)
             ret.update({key : val})
         return ret
->>>>>>> 0519326cb2aeac97976bf8c86e4397f9269e2565
