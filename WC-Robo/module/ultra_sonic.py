@@ -2,13 +2,6 @@ import RPi.GPIO as GPIO
 import time
 
 class UltraSonic:
-<<<<<<< HEAD
-    def __init__(self) -> None:
-        pass
-
-    def read(self) -> None:
-        pass
-=======
     def __init__(self, GPIO_PINs: dict) -> None:
         self.GPIO_PINs = GPIO_PINs
         for module, pins in self.GPIO_PINs.items():

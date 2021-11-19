@@ -15,9 +15,6 @@ from settings import *
 
 class WC_Robo:
     def __init__(self) -> None:
-<<<<<<< HEAD
-        # Member Variables
-=======
         # Set GPIO Mode
         GPIO.setmode(GPIO.BCM)
 
@@ -25,7 +22,6 @@ class WC_Robo:
         self.control_signal = CONTROL_SIGNAL['IDLE']
 
         # Status
->>>>>>> 0519326cb2aeac97976bf8c86e4397f9269e2565
         self.status = STATUS['STOP']
         self.line_sensor_val = list
         self.color_sensor_val = 'E'
