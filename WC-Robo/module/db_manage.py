@@ -13,8 +13,8 @@ class DB_Manager:
         firebase_admin.initialize_app(self.cred, config)
         self.update_signal = False  # Update signal for data update check
         self.target_location = None
-    
-    def __GetData(self, reference: str, placeId: str) -> None:
+
+    def __GetData(self, reference, placeId):
         dir = db.reference(f"{reference}/{placeId}")
         return dir.get()
     
@@ -40,5 +40,5 @@ class DB_Manager:
         self.__SetData("charge_request", "Home")
 
     def updateChargingStatus(self, reference, chargingStatus, chargePercentage, voltageValue):
-        dir = db.reference(f"charging_status/{reference}")
+        dir = db.reference(f"charge_status/{reference}")
         dir.update({"chargingStatus": chargingStatus, "chargePercentage": chargePercentage, "voltageValue": voltageValue})
