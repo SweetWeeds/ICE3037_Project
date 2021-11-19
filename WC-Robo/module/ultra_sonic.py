@@ -8,8 +8,8 @@ class UltraSonic:
             GPIO.setup(pins["Trig"], GPIO.OUT)
             GPIO.setup(pins["Echo"], GPIO.IN)
 
-    # Return distance from module (metric: mm)
-    def read(self, module):
+    # Return distance from module (metric: cm)
+    def read(self, module: str) -> float:
         GPIO.output(self.GPIO_PINs[module]["Trig"], False)
         time.sleep(0.5)
 
