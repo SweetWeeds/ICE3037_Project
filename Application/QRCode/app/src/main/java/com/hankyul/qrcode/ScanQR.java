@@ -41,16 +41,18 @@ public class ScanQR extends AppCompatActivity {
                 this.finish();
             } else {
                 Toast.makeText(this, "스캔했습니다: " + result.getContents(), Toast.LENGTH_LONG).show();
-                this.sendRequest(result.getContents(), "user");
-                this.finish();
+                this.sendRequest("wc-robo:1", result.getContents());
+                Intent intent = new Intent(ScanQR.this, StatusActivity.class);
+                startActivity(intent);
+                //this.finish();
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
-    protected void sendRequest(String targetPlaceId, String User) {
-        mDatabase.child("charge_request").child(targetPlaceId).setValue(User)
+    protected void sendRequest(String targetDev, String targetPlaceId) {
+        mDatabase.child("charge_request").child(targetDev).setValue(targetPlaceId)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void unused) {
