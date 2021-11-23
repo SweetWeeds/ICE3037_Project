@@ -1,100 +1,45 @@
 /*
-   Based on Neil Kolban example for IDF: https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleScan.cpp
-   Ported to Arduino ESP32 by Evandro Copercini
+    Based on Neil Kolban example for IDF: https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleServer.cpp
+    Ported to Arduino ESP32 by Evandro Copercini
+    updates by chegewara
 */
-#include <Arduino.h>
-#include <sstream>
 
 #include <BLEDevice.h>
 #include <BLEUtils.h>
-#include <BLEScan.h>
-#include <BLEAdvertisedDevice.h>
+#include <BLEServer.h>
 
-/*  Duration of BLE scan
-    ==============                  ==============                   ==============
-    =   WINDOW   =  ===INTERVAL===  =   WINDOW   =  ===INTERVAL===   =   WINDOW   =
-    ==============                  ==============                   ==============
-    ===============================================================================
-    =                                  SCAN TIME                                  =
-    ===============================================================================
-*/
-#define SCAN_TIME 1       // seconds
-#define INTERVAL_TIME 200 // (mSecs)
-#define WINDOW_TIME 100   // less or equal setInterval value
+// 다음 사이트에서 UUIDs 를 생성가능:
+// https://www.uuidgenerator.net/
 
-BLEScan *pBLEScan;
-
-String deviceName;
-String deviceAddress;
-int16_t deviceRSSI;
-uint16_t countDevice;
-
-boolean check;
-int count_stable = 0;
-
-class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
-    void onResult(BLEAdvertisedDevice advertisedDevice) {
-        /* unComment when you want to see devices found */
-        Serial.printf("Found device: %s \n", advertisedDevice.toString().c_str());
-    }
-};
+#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
 void setup() {
-    Serial.begin(115200);
-    Serial.println("BLEDevice init...");
+  Serial.begin(115200);
+  Serial.println("Starting BLE work!");
 
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, HIGH);
+  BLEDevice::init("ElectricCar");
+  BLEServer *pServer = BLEDevice::createServer();
+  BLEService *pService = pServer->createService(SERVICE_UUID);
+  BLECharacteristic *pCharacteristic = pService->createCharacteristic(
+                                         CHARACTERISTIC_UUID,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
 
-    BLEDevice::init("");
-    pBLEScan = BLEDevice::getScan();
-    pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-    pBLEScan->setActiveScan(true);        //active scan uses more power, but get results faster
-    pBLEScan->setInterval(INTERVAL_TIME); // Set the interval to scan (mSecs)
-    pBLEScan->setWindow(WINDOW_TIME);     // less or equal setInterval value
+  pCharacteristic->setValue("Hello World says Neil");
+  pService->start();
+  // BLEAdvertising *pAdvertising = pServer->getAdvertising();  // this still is working for backward compatibility
+  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(SERVICE_UUID);
+  pAdvertising->setScanResponse(true);
+  pAdvertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
+  pAdvertising->setMinPreferred(0x12);
+  BLEDevice::startAdvertising();
+  Serial.println("Characteristic defined! Now you can read it in your phone!");
 }
 
 void loop() {
-    BLEScanResults foundDevices = pBLEScan->start(SCAN_TIME);
-
-    int count = foundDevices.getCount();
-    for (int i = 0; i < count; i++) {
-        BLEAdvertisedDevice d = foundDevices.getDevice(i);
-
-        if (d.getName() == "Amazfit Bip Watch") {
-            check = true;
-            count_stable = 0;
-
-            char deviceBuffer[100];
-            deviceName = d.getName().c_str();
-            deviceAddress = d.getAddress().toString().c_str();
-            deviceRSSI = d.getRSSI();
-
-            sprintf(deviceBuffer, "Name: %s| Address: %s| RSSI: %d\n", deviceName.c_str(), deviceAddress.c_str(), deviceRSSI);
-            Serial.print(deviceBuffer);
-
-            if (deviceAddress == "cd:bc:16:89:51:9f" && deviceRSSI > -80) {
-                digitalWrite(LED_BUILTIN, LOW); // Turn on LED
-                Serial.println("ON");
-            } else {
-                digitalWrite(LED_BUILTIN, HIGH); // Turn off LED
-                Serial.println("OFF");
-            }
-            //---------------------------------------------------------Check if not found Mi Band-------------------------------------
-        }
-        else if (i == count - 1 && check == false) {
-            count_stable += 1;
-            if (count_stable == 20) { // set limit to reset counter
-                count_stable = 0;
-            }
-            Serial.println(count_stable);
-            if (count_stable == 4) { //set quantity of scan cycle for accept missing Mi Band
-                digitalWrite(LED_BUILTIN, HIGH);
-                Serial.println("Not Found");
-            }
-        }
-        check = false;
-        //---------------------------------------------------------------------------------------------------------------------------
-    }
-    pBLEScan->clearResults();
+  // put your main code here, to run repeatedly:
+  delay(2000);
 }
