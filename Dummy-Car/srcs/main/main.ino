@@ -1,45 +1,107 @@
-/*
-    Based on Neil Kolban example for IDF: https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleServer.cpp
-    Ported to Arduino ESP32 by Evandro Copercini
-    updates by chegewara
-*/
+/**
+ * @file main.ino
+ * @author Hankyul Kwon (khk4502@gmail.com)
+ * @brief This code is edited for control dummy car's LED and BLE.
+ * @version 0.1
+ * @date 2021-11-27
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 
-#include <BLEDevice.h>
-#include <BLEUtils.h>
-#include <BLEServer.h>
+#include "BluetoothSerial.h"
+#include "esp_bt_device.h"
 
-// 다음 사이트에서 UUIDs 를 생성가능:
-// https://www.uuidgenerator.net/
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+#endif
 
-#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+// Value setting
+#define CHARGE_STEP             10      // charging step by 'TIMER_INTERRUPT_TERM'
+#define TIMER_INTERRUPT_TERM    100     // milli seconds
+
+// Pin setting
+int PIN_WIRLESS_CHARGING = 13;      // Input pin of wireless charging signal
+int PIN_CHARGE_LEVEL_LED[5] = { 14, 15, 16, 17, 18 };
+
+BluetoothSerial SerialBT;
+
+// Timer interrupt setting
+volatile bool interruptCounter=false;
+hw_timer_t * timer = NULL;
+
+bool isCharging = false;
+int chargeLevel = 0;
+char serial_buf[100] = { 0, };
+
+void IRAM_ATTR timerIntrptFunc() {
+    Serial.println("Timer Interrupt Called");
+    if (isCharging) {
+        // Charging Complete: Negate 'isCharging' signal.
+        if (chargeLevel >= 100) {
+            isCharging = false;
+        } else {
+            int i = 0;
+            chargeLevel += CHARGE_STEP;
+            sprintf(serial_buf, "%d%", chargeLevel);
+            while (serial_buf[i] != 0) {
+                SerialBT.write(serial_buf[i++]);
+            }
+            Serial.println(serial_buf);
+        }
+    }
+    if (chargeLevel >= 20 ) digitalWrite(PIN_CHARGE_LEVEL_LED[0], HIGH);
+    if (chargeLevel >= 40 ) digitalWrite(PIN_CHARGE_LEVEL_LED[1], HIGH);
+    if (chargeLevel >= 60 ) digitalWrite(PIN_CHARGE_LEVEL_LED[2], HIGH);
+    if (chargeLevel >= 80 ) digitalWrite(PIN_CHARGE_LEVEL_LED[3], HIGH);
+    if (chargeLevel >= 100) digitalWrite(PIN_CHARGE_LEVEL_LED[4], HIGH);
+}
+
+void printDeviceAddress() {
+    const uint8_t *point = esp_bt_dev_get_address();
+
+    for (int i = 0; i < 6; i++) {
+        char str[3];
+
+        sprintf(str, "%02X", (int)point[i]);
+        Serial.print(str);
+
+        if (i < 5) {
+        Serial.print(":");
+        }
+    }
+}
+
+void IRAM_ATTR startBLE() {
+    SerialBT.begin("ElectricCarTest"); // Bluetooth device name
+    Serial.println("Charging started...");
+    Serial.println("Device Name: ElectricCar");
+    Serial.print("BT MAC: ");
+    printDeviceAddress();
+    Serial.println();
+    isCharging = true;
+}
+
+void interrupt_init(){              //timer interrupt freq is 80Mhz
+    timer = timerBegin(0, 80, true);  //division 80=1Mhz
+    timerAttachInterrupt(timer, &timerIntrptFunc, true);
+    timerAlarmWrite(timer, 1000000, true);    //count 1000000 = 1sec,1000=1msec
+    timerAlarmEnable(timer);
+}
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println("Starting BLE work!");
+    Serial.begin(115200);
 
-  BLEDevice::init("ElectricCar");
-  BLEServer *pServer = BLEDevice::createServer();
-  BLEService *pService = pServer->createService(SERVICE_UUID);
-  BLECharacteristic *pCharacteristic = pService->createCharacteristic(
-                                         CHARACTERISTIC_UUID,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE
-                                       );
+    pinMode(PIN_WIRLESS_CHARGING, INPUT);   // Wireless Charging Input signal
+    for (int i = 0; i < 5; i++) {
+        pinMode(PIN_CHARGE_LEVEL_LED[i], OUTPUT);
+    }
+    attachInterrupt(digitalPinToInterrupt(PIN_WIRLESS_CHARGING), startBLE, RISING);
 
-  pCharacteristic->setValue("Hello World says Neil");
-  pService->start();
-  // BLEAdvertising *pAdvertising = pServer->getAdvertising();  // this still is working for backward compatibility
-  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-  pAdvertising->addServiceUUID(SERVICE_UUID);
-  pAdvertising->setScanResponse(true);
-  pAdvertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
-  pAdvertising->setMinPreferred(0x12);
-  BLEDevice::startAdvertising();
-  Serial.println("Characteristic defined! Now you can read it in your phone!");
+    // Setup Timer Interrupt Function
+    interrupt_init();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  delay(2000);
+    // Do nothing
 }
