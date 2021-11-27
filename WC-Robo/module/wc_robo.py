@@ -2,7 +2,6 @@ import sys
 import threading
 import time
 import RPi.GPIO as GPIO
-import PyBeacon
 
 sys.path.append("/home/pi/workspace/ICE3037_Project/WC-Robo/module")
 
@@ -61,11 +60,11 @@ class WC_Robo:
 
     ## Start of motor control Functions ##
     ## DYNAMIXEL Control Code ##
-    def __moveForward(self, velocity: int = 100) -> None:
+    def __moveForward(self, velocity: int = 50) -> None:
         self.motorHandler.setVelocity(LEFT_MOTOR_ID,  velocity)
         self.motorHandler.setVelocity(RIGHT_MOTOR_ID, velocity)
 
-    def __moveBackward(self, velocity: int = 100) -> None:
+    def __moveBackward(self, velocity: int = 50) -> None:
         self.motorHandler.setVelocity(LEFT_MOTOR_ID,  -velocity)
         self.motorHandler.setVelocity(RIGHT_MOTOR_ID, -velocity)
 
@@ -79,7 +78,7 @@ class WC_Robo:
         time.sleep(HANDLING_TIME)
         self.motorHandler.setVelocity(RIGHT_MOTOR_ID, old_vel)
     
-    def __moveRotate(self, velocity: int = 100, clockwise: bool = True) -> None:
+    def __moveRotate(self, velocity: int = 50, clockwise: bool = True) -> None:
         if not clockwise:
             velocity = -velocity
         self.motorHandler.setVelocity(LEFT_MOTOR_ID, velocity)
@@ -232,13 +231,13 @@ class WC_Robo:
                 line_sensor_tmp = self.line_sensor.read()
                 # Turn Left (Strong)
                 if line_sensor_tmp[0] and line_sensor_tmp[1] and not line_sensor_tmp[2] and not line_sensor_tmp[3]:
-                    self.__moveLeft(20)
-                elif not line_sensor_tmp[0] and line_sensor_tmp[1] and not line_sensor_tmp[2] and not line_sensor_tmp[3]:
-                    self.__moveLeft(40)
-                elif not line_sensor_tmp[0] and not line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
                     self.__moveRight(20)
-                elif not line_sensor_tmp[0] and not line_sensor_tmp[1] and line_sensor_tmp[2] and not line_sensor_tmp[3]:
+                elif not line_sensor_tmp[0] and line_sensor_tmp[1] and not line_sensor_tmp[2] and not line_sensor_tmp[3]:
                     self.__moveRight(40)
+                elif not line_sensor_tmp[0] and not line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
+                    self.__moveLeft(20)
+                elif not line_sensor_tmp[0] and not line_sensor_tmp[1] and line_sensor_tmp[2] and not line_sensor_tmp[3]:
+                    self.__moveLeft(40)
                 else:
                     pass
             else:

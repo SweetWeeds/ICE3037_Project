@@ -1,1 +1,1 @@
-python3 ./WC-Robo/main.py
+sudo python3 ./WC-Robo/main.py

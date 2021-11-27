@@ -8,8 +8,10 @@ if __name__ == "__main__":
     #wc_robo.run()
     #wc_robo.sensorTest()
     #wc_robo.coilMoveUp(3)
-    wc_robo.setFront()
-    wc_robo.setCoil()
+    #wc_robo.setFront()
+    #wc_robo.setCoil()
+    #wc_robo.line_tracing_thread()
+    wc_robo.line_trace_active = True
     #wc_robo.line_tracing_thread()
 
 
