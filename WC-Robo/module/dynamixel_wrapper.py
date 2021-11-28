@@ -25,6 +25,7 @@ PROTOCOL_VERSION = 2.0
 # Address of parameters
 ADDR_TORQUE_ENABLE = 64
 ADDR_GOAL_VELOCITY = 104
+ADDR_PRESENT_POS   = 132
 
 # Constants
 MIN_VELOCITY = -1023
@@ -87,3 +88,8 @@ class MotorHandler:
         old_vel = self.readVelocity(ID)
         self.setVelocity(ID, old_vel + val)
         return old_vel
+    
+    def readPosition(self, ID: int) -> int:
+        dxl_present_pos, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, ID, ADDR_PRESENT_POS)
+        self.__error_check(dxl_comm_result, dxl_error)
+        return dxl_present_pos

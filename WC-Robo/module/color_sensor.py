@@ -5,7 +5,7 @@ import adafruit_tcs34725
 R = 0
 G = 1
 B = 2
-THRESHOLD = [50, 50, 50]    # RGB Threshold
+THRESHOLD = [50, 50, 70]    # RGB Threshold
 
 class ColorSensor:
     def __init__(self) -> None:

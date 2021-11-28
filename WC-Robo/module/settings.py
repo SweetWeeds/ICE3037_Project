@@ -38,6 +38,7 @@ ULTRASONIC_BOUNDARY = {
 R = 0
 G = 1
 B = 2
+ROW = { 'A': 'R', 'B': 'B' }    # Position row's dict
 CONTROL_SIGNAL = { 'IDLE' : 0, 'GO_TARGET' : 1, 'SET_COIL' : 2, 'BACK_HOME' : 3 }
 STATUS = { 'STOP': 0, 'MOVING': 1, 'CHARGING': 2, 'COMPLETE': 3, 'EXCEPTION': 4 }
 HANDLING_TIME = 0.3

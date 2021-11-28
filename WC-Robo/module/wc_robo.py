@@ -31,7 +31,7 @@ class WC_Robo:
 
         # Init motors
         self.motorHandler = MotorHandler(DEVICE_NAME, MOTOR_IDS, BAUDRATE)
-        self.__moveStop()
+        self.moveStop()
         self.__torqueEnable()
 
         # Init Linear Servo
@@ -60,7 +60,7 @@ class WC_Robo:
 
     ## Start of motor control Functions ##
     ## DYNAMIXEL Control Code ##
-    def __moveForward(self, velocity: int = 50) -> None:
+    def moveForward(self, velocity: int = 50) -> None:
         self.motorHandler.setVelocity(LEFT_MOTOR_ID,  velocity)
         self.motorHandler.setVelocity(RIGHT_MOTOR_ID, velocity)
 
@@ -78,13 +78,26 @@ class WC_Robo:
         time.sleep(HANDLING_TIME)
         self.motorHandler.setVelocity(RIGHT_MOTOR_ID, old_vel)
     
-    def __moveRotate(self, velocity: int = 50, clockwise: bool = True) -> None:
+    def moveRotate(self, velocity: int = 50, clockwise: bool = True) -> None:
         if not clockwise:
             velocity = -velocity
         self.motorHandler.setVelocity(LEFT_MOTOR_ID, velocity)
         self.motorHandler.setVelocity(RIGHT_MOTOR_ID, -velocity)
 
-    def __moveStop(self) -> None:
+    def moveRotate90(self, clockwise: bool=True) -> None:
+        ROTATION_OFFSET = 2533
+        self.moveRotate(velocity=20, clockwise=clockwise)
+        initialPos = self.readPresentPos()
+        offset = [ 0, 0 ]
+        while (True):
+            presentPos = self.readPresentPos()
+            offset[0] = abs(presentPos[0] - initialPos[0])
+            offset[1] = abs(presentPos[1] - initialPos[1])
+            if (offset[0] >= ROTATION_OFFSET and offset[1] >= ROTATION_OFFSET):
+                return None
+        self.moveStop()
+
+    def moveStop(self) -> None:
         self.motorHandler.setVelocity(LEFT_MOTOR_ID,  0)
         self.motorHandler.setVelocity(RIGHT_MOTOR_ID, 0)
 
@@ -95,6 +108,13 @@ class WC_Robo:
     def __torqueEnable(self) -> None:
         self.motorHandler.setTorque(LEFT_MOTOR_ID,  True)
         self.motorHandler.setTorque(RIGHT_MOTOR_ID, True)
+    
+    def readPresentPos(self) -> list:
+        ret = [ 
+            self.motorHandler.readPosition(LEFT_MOTOR_ID),
+            self.motorHandler.readPosition(RIGHT_MOTOR_ID)
+            ]
+        return ret
     ## End of DYNAMIXEL Control Code ##
     
 
@@ -108,17 +128,17 @@ class WC_Robo:
         print("Degree: {} to {}(Duty)".format(degree, duty))
         self.linear_servo.ChangeDutyCycle(duty)
 
-    def __coilMoveDefault(self) -> None:
+    def coilMoveDefault(self) -> None:
         self.__setServoPos(0.0)
         time.sleep(0.5)
 
-    def __coilMoveUp(self, val: float=3.0) -> None:
+    def coilMoveUp(self, val: float=3.0) -> None:
         self.linear_servo_pos += val
         self.__setServoPos(self.linear_servo_pos)
         time.sleep(0.5)
         print(f"Current Coil Pos:{self.linear_servo_pos}")
     
-    def __coilMoveDown(self, val: float=3.0) -> None:
+    def coilMoveDown(self, val: float=3.0) -> None:
         self.linear_servo_pos -= val
         self.__setServoPos(self.linear_servo_pos)
         time.sleep(0.5)
@@ -178,7 +198,7 @@ class WC_Robo:
                 return None
             # Current Distance is 
             elif (currentDist >= ULTRASONIC_BOUNDARY["COIL"]["LOWER_BOUND"]):
-                self.__coilMoveUp(10)
+                self.coilMoveUp(10)
                 pass
             else:
                 pass
@@ -186,12 +206,12 @@ class WC_Robo:
     # Setup Front
     def setFront(self) -> None:
         print("[INFO] Start front setup")
-        self.__moveForward(10)
+        self.moveForward(10)
         while (True):
             currentDist = self.ultra_sonic.read("FRONT")
             print(f"currentDist:{currentDist}")
             if (currentDist < ULTRASONIC_BOUNDARY["FRONT"]["LOWER_BOUND"]):
-                self.__moveStop()
+                self.moveStop()
                 print(f"Forward setup at {currentDist}")
                 return None
             else:
@@ -206,7 +226,7 @@ class WC_Robo:
             # Get Status Code
             if (self.status == STATUS['STOP']):
                 self.line_trace_active = False  # Deactivate line tracing
-                self.__moveStop()               # Deactivate DYNAMIXEL
+                self.moveStop()               # Deactivate DYNAMIXEL
                 continue    # IDLING
             elif (self.status == STATUS['MOVING']):
                 self.line_trace_active = True   # Activate line tracing
@@ -215,7 +235,7 @@ class WC_Robo:
                 pass
             elif (self.status == STATUS['CHARGING']):
                 self.line_trace_active = False  # Deactivate line tracing
-                self.__moveStop()               # Deactivate DYNAMIXEL
+                self.moveStop()               # Deactivate DYNAMIXEL
                 pass
             elif (self.status == STATUS['COMPLETE']):
                 self.dbm.setDefaultLocation()   # Set target location into home and go back to home location.
@@ -225,7 +245,7 @@ class WC_Robo:
 
 
     def line_tracing_thread(self):
-        self.__moveForward()
+        self.moveForward()
         while (True):
             if (self.line_trace_active):
                 line_sensor_tmp = self.line_sensor.read()
