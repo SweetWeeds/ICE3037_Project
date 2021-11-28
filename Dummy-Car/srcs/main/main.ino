@@ -22,7 +22,7 @@
 
 // Pin setting
 int PIN_WIRLESS_CHARGING = 13;      // Input pin of wireless charging signal
-int PIN_CHARGE_LEVEL_LED[5] = { 14, 15, 16, 17, 18 };
+int PIN_CHARGE_LEVEL_LED[5] = { 12, 14, 27, 26, 25 };
 
 BluetoothSerial SerialBT;
 
@@ -36,25 +36,33 @@ char serial_buf[100] = { 0, };
 
 void IRAM_ATTR timerIntrptFunc() {
     Serial.println("Timer Interrupt Called");
-    if (isCharging) {
+    if (!isCharging) {
+        isCharging = digitalRead(PIN_WIRLESS_CHARGING);
+        if (chargeLevel > 0) chargeLevel -= CHARGE_STEP;
+    } else {
         // Charging Complete: Negate 'isCharging' signal.
         if (chargeLevel >= 100) {
             isCharging = false;
         } else {
-            int i = 0;
             chargeLevel += CHARGE_STEP;
-            sprintf(serial_buf, "%d%", chargeLevel);
-            while (serial_buf[i] != 0) {
-                SerialBT.write(serial_buf[i++]);
-            }
-            Serial.println(serial_buf);
         }
     }
     if (chargeLevel >= 20 ) digitalWrite(PIN_CHARGE_LEVEL_LED[0], HIGH);
+    else                    digitalWrite(PIN_CHARGE_LEVEL_LED[0], LOW);
     if (chargeLevel >= 40 ) digitalWrite(PIN_CHARGE_LEVEL_LED[1], HIGH);
+    else                    digitalWrite(PIN_CHARGE_LEVEL_LED[1], LOW);
     if (chargeLevel >= 60 ) digitalWrite(PIN_CHARGE_LEVEL_LED[2], HIGH);
+    else                    digitalWrite(PIN_CHARGE_LEVEL_LED[2], LOW);
     if (chargeLevel >= 80 ) digitalWrite(PIN_CHARGE_LEVEL_LED[3], HIGH);
+    else                    digitalWrite(PIN_CHARGE_LEVEL_LED[3], LOW);
     if (chargeLevel >= 100) digitalWrite(PIN_CHARGE_LEVEL_LED[4], HIGH);
+    else                    digitalWrite(PIN_CHARGE_LEVEL_LED[4], LOW);
+    sprintf(serial_buf, "%d%", chargeLevel);
+    int i = 0;
+    while (serial_buf[i] != 0) {
+        SerialBT.write(serial_buf[i++]);
+    }
+    Serial.println(serial_buf);
 }
 
 void printDeviceAddress() {
@@ -72,16 +80,6 @@ void printDeviceAddress() {
     }
 }
 
-void IRAM_ATTR startBLE() {
-    SerialBT.begin("ElectricCarTest"); // Bluetooth device name
-    Serial.println("Charging started...");
-    Serial.println("Device Name: ElectricCar");
-    Serial.print("BT MAC: ");
-    printDeviceAddress();
-    Serial.println();
-    isCharging = true;
-}
-
 void interrupt_init(){              //timer interrupt freq is 80Mhz
     timer = timerBegin(0, 80, true);  //division 80=1Mhz
     timerAttachInterrupt(timer, &timerIntrptFunc, true);
@@ -91,17 +89,24 @@ void interrupt_init(){              //timer interrupt freq is 80Mhz
 
 void setup() {
     Serial.begin(115200);
+    SerialBT.begin("ElectricCarTest"); // Bluetooth device name
+    Serial.println("Charging started...");
+    Serial.println("Device Name: ElectricCar");
+    Serial.print("BT MAC: ");
+    printDeviceAddress();
+    Serial.println();
+    isCharging = false;
 
     pinMode(PIN_WIRLESS_CHARGING, INPUT);   // Wireless Charging Input signal
     for (int i = 0; i < 5; i++) {
         pinMode(PIN_CHARGE_LEVEL_LED[i], OUTPUT);
     }
-    attachInterrupt(digitalPinToInterrupt(PIN_WIRLESS_CHARGING), startBLE, RISING);
+    //attachInterrupt(digitalPinToInterrupt(PIN_WIRLESS_CHARGING), startBLE, RISING);
 
     // Setup Timer Interrupt Function
     interrupt_init();
 }
 
 void loop() {
-    // Do nothing
+    //Serial.println("Testing");
 }
