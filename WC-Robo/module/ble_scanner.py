@@ -1,10 +1,7 @@
 from bluetooth import *
-import threading
 
-class BluetoothScanner(threading.Thread):
+class BluetoothScanner:
     def __init__(self, addr: str="F0:08:D1:F2:AC:42"):
-        threading.Thread.__init__(self)
-        self.running = True
         self.charge_rate = 0
 
         #MAC address of ESP32
@@ -55,9 +52,6 @@ class BluetoothScanner(threading.Thread):
                 else:
                     buf += data.decode('utf-8')
     
-    def stop_thread(self):
-        self.running = False
 
 if __name__ == "__main__":
     bs = BluetoothScanner()
-    bs.start()

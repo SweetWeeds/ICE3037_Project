@@ -7,6 +7,7 @@ sys.path.append("/home/pi/workspace/ICE3037_Project/WC-Robo/module")
 
 from dynamixel_wrapper import MotorHandler
 from db_manage import DB_Manager
+from ble_scanner import BluetoothScanner
 from color_sensor import ColorSensor
 from line_sensor import LineSensor
 from ultra_sonic import UltraSonic
@@ -28,6 +29,9 @@ class WC_Robo:
 
         # DB Manager
         self.dbm = DB_Manager()
+
+        # BLE Scanner
+        self.ble = BluetoothScanner()
 
         # Init motors
         self.motorHandler = MotorHandler(DEVICE_NAME, MOTOR_IDS, BAUDRATE)
@@ -81,8 +85,8 @@ class WC_Robo:
     def moveRotate(self, velocity: int = 50, clockwise: bool = True) -> None:
         if not clockwise:
             velocity = -velocity
-        self.motorHandler.setVelocity(LEFT_MOTOR_ID, velocity)
-        self.motorHandler.setVelocity(RIGHT_MOTOR_ID, -velocity)
+        self.motorHandler.setVelocity(LEFT_MOTOR_ID, -velocity)
+        self.motorHandler.setVelocity(RIGHT_MOTOR_ID, velocity)
 
     def moveRotate90(self, clockwise: bool=True) -> None:
         ROTATION_OFFSET = 2533
@@ -91,11 +95,10 @@ class WC_Robo:
         offset = [ 0, 0 ]
         while (True):
             presentPos = self.readPresentPos()
-            offset[0] = abs(presentPos[0] - initialPos[0])
-            offset[1] = abs(presentPos[1] - initialPos[1])
+            offset = [ abs(presentPos[0] - initialPos[0]), abs(presentPos[1] - initialPos[1]) ]
             if (offset[0] >= ROTATION_OFFSET and offset[1] >= ROTATION_OFFSET):
+                self.moveStop()
                 return None
-        self.moveStop()
 
     def moveStop(self) -> None:
         self.motorHandler.setVelocity(LEFT_MOTOR_ID,  0)
@@ -243,25 +246,25 @@ class WC_Robo:
                 print(f"[ERROR] Status code is not matching in dictinoary. (STATUS_CODE:{self.status})")
                 pass
 
+    def line_trace_partial(self):
+        line_sensor_tmp = self.line_sensor.read()
+        # Turn Left (Strong)
+        if line_sensor_tmp[0] and line_sensor_tmp[1] and not line_sensor_tmp[2] and line_sensor_tmp[3]:
+            self.__moveRight(40)
+        elif line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and not line_sensor_tmp[3]:
+            self.__moveRight(60)
+        elif not line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
+            self.__moveLeft(60)
+        elif line_sensor_tmp[0] and not line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
+            self.__moveLeft(40)
+        else:
+            self.moveForward()
 
     def line_tracing_thread(self):
+        print("[INFO] Linetracing start")
         self.moveForward()
         while (True):
-            if (self.line_trace_active):
-                line_sensor_tmp = self.line_sensor.read()
-                # Turn Left (Strong)
-                if line_sensor_tmp[0] and line_sensor_tmp[1] and not line_sensor_tmp[2] and not line_sensor_tmp[3]:
-                    self.__moveRight(20)
-                elif not line_sensor_tmp[0] and line_sensor_tmp[1] and not line_sensor_tmp[2] and not line_sensor_tmp[3]:
-                    self.__moveRight(40)
-                elif not line_sensor_tmp[0] and not line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
-                    self.__moveLeft(20)
-                elif not line_sensor_tmp[0] and not line_sensor_tmp[1] and line_sensor_tmp[2] and not line_sensor_tmp[3]:
-                    self.__moveLeft(40)
-                else:
-                    pass
-            else:
-                pass
+            self.line_trace_partial()
 
     def run(self):
         self.main_thread_inst.start()

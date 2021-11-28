@@ -38,6 +38,7 @@ void IRAM_ATTR timerIntrptFunc() {
     Serial.println("Timer Interrupt Called");
     if (isCharging) {
         // Charging Complete: Negate 'isCharging' signal.
+        Serial.println("Charge step");
         if (chargeLevel >= 100) {
             isCharging = false;
         } else {
