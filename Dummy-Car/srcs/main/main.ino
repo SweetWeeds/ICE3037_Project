@@ -41,6 +41,7 @@ void IRAM_ATTR timerIntrptFunc() {
         if (chargeLevel > 0) chargeLevel -= CHARGE_STEP;
     } else {
         // Charging Complete: Negate 'isCharging' signal.
+        Serial.println("Charge step");
         if (chargeLevel >= 100) {
             isCharging = false;
         } else {

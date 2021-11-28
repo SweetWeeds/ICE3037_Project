@@ -9,9 +9,10 @@ def goPos(wc_robo: WC_Robo, pos: str='A1') -> None:
     col = pos[1]    # '1'
     # 1. Go to right row. ('A': 'R', 'B': 'B')
     print("[INFO] Stage 1")
-    wc_robo.moveForward()
+    #wc_robo.line_tracing_thread_inst.start()
     while (wc_robo.color_sensor.read() != ROW[row]):
-        continue
+        wc_robo.line_trace_partial()
+    #wc_robo.line_tracing_thread_inst.do_run = False
     wc_robo.moveStop()
     # 2. Rotate until find column line.
     print("[INFO] Stage 2")
@@ -19,6 +20,9 @@ def goPos(wc_robo: WC_Robo, pos: str='A1') -> None:
     print(f"[INFO] Rotate :{clockwise}")
     wc_robo.moveRotate90(clockwise=clockwise)
     print("[INFO] Stage 3")
+
+def startCharge(wc_robo: WC_Robo) -> None:
+    wc_robo.ble.
 
 if __name__ == "__main__":
     wc_robo = WC_Robo()
@@ -33,6 +37,7 @@ if __name__ == "__main__":
         elif (cmd == 'e'):
             print(wc_robo.readPresentPos())
     """
-    goPos(wc_robo, 'A1')
+    goPos(wc_robo, 'B1')
     #wc_robo.moveRotate()
+    #wc_robo.moveStop()
 
