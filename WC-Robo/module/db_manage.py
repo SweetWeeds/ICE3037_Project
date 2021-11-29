@@ -14,8 +14,16 @@ class DB_Manager:
         self.update_signal = False  # Update signal for data update check
         self.target_location = None
 
-    def __GetData(self, reference, placeId):
+    def GetData(self, reference, placeId):
         dir = db.reference(f"{reference}/{placeId}")
+        return dir.get()
+
+    def GetSession(self):
+        dir = db.reference("charge_request/session")
+        return dir.get()
+    
+    def GetTargetPos(self):
+        dir = db.reference("charge_request/wc-robo:1")
         return dir.get()
     
     def __SetData(self, reference: str, placeId: str, value: str) -> None:

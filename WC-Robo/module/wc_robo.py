@@ -42,9 +42,9 @@ class WC_Robo:
         # Init Linear Servo
         GPIO.setup(SERVO_PIN, GPIO.OUT)
         self.linear_servo = GPIO.PWM(SERVO_PIN, 50)
-        self.linear_servo_pos = 0
+        self.linear_servo_pos = SERVO_MIN_POS
         self.linear_servo.start(0)
-        self.__setServoPos(self.linear_servo_pos)
+        self.setServoPos(self.linear_servo_pos)
 
         # Sensors
         self.line_sensor = LineSensor(LINE_SENSOR_PINS)
@@ -69,7 +69,7 @@ class WC_Robo:
         self.motorHandler.setVelocity(LEFT_MOTOR_ID,  velocity)
         self.motorHandler.setVelocity(RIGHT_MOTOR_ID, velocity)
 
-    def __moveBackward(self, velocity: int = 50) -> None:
+    def moveBackward(self, velocity: int = 50) -> None:
         self.motorHandler.setVelocity(LEFT_MOTOR_ID,  -velocity)
         self.motorHandler.setVelocity(RIGHT_MOTOR_ID, -velocity)
 
@@ -123,7 +123,7 @@ class WC_Robo:
     
 
     ## Linear Servo Code ##
-    def __setServoPos(self, degree: float):
+    def setServoPos(self, degree: float):
         if degree > 180.0:
             degree = 180.0
         if degree < 0.0:
@@ -133,18 +133,20 @@ class WC_Robo:
         self.linear_servo.ChangeDutyCycle(duty)
 
     def coilMoveDefault(self) -> None:
-        self.__setServoPos(0.0)
+        self.setServoPos(0.0)
         time.sleep(0.5)
 
     def coilMoveUp(self, val: float=3.0) -> None:
         self.linear_servo_pos += val
-        self.__setServoPos(self.linear_servo_pos)
+        self.setServoPos(self.linear_servo_pos)
         time.sleep(0.5)
         print(f"Current Coil Pos:{self.linear_servo_pos}")
     
     def coilMoveDown(self, val: float=3.0) -> None:
         self.linear_servo_pos -= val
-        self.__setServoPos(self.linear_servo_pos)
+        if (self.linear_servo_pos < SERVO_MIN_POS):
+            self.linear_servo_pos = SERVO_MIN_POS
+        self.setServoPos(self.linear_servo_pos)
         time.sleep(0.5)
         print(f"Current Coil Pos:{self.linear_servo_pos}")
     ## End of Linear Servo Code ##
@@ -195,7 +197,8 @@ class WC_Robo:
         print("[INFO] Start coil setup")
         while (True):
             currentDist = self.ultra_sonic.read("COIL")
-            
+            print(f"currentDist:{currentDist}")
+
             # Current Distance is closer than low bound limit: STOP
             if (currentDist < ULTRASONIC_BOUNDARY["COIL"]["LOWER_BOUND"]):
                 print(f"Coil setup at {currentDist}")
@@ -247,19 +250,32 @@ class WC_Robo:
                 print(f"[ERROR] Status code is not matching in dictinoary. (STATUS_CODE:{self.status})")
                 pass
 
-    def line_trace_partial(self):
+    def line_trace_partial(self, forward=True):
         line_sensor_tmp = self.line_sensor.read()
-        # Turn Left (Strong)
-        if line_sensor_tmp[0] and line_sensor_tmp[1] and not line_sensor_tmp[2] and line_sensor_tmp[3]:
-            self.__moveRight(40)
-        elif line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and not line_sensor_tmp[3]:
-            self.__moveRight(60)
-        elif not line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
-            self.__moveLeft(60)
-        elif line_sensor_tmp[0] and not line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
-            self.__moveLeft(40)
+        if forward:
+            # Turn Left (Strong)
+            if line_sensor_tmp[0] and line_sensor_tmp[1] and not line_sensor_tmp[2] and line_sensor_tmp[3]:
+                self.__moveRight(40)
+            elif line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and not line_sensor_tmp[3]:
+                self.__moveRight(60)
+            elif not line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
+                self.__moveLeft(60)
+            elif line_sensor_tmp[0] and not line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
+                self.__moveLeft(40)
+            else:
+                self.moveForward()
         else:
-            self.moveForward()
+            # Turn Left (Strong)
+            if line_sensor_tmp[0] and line_sensor_tmp[1] and not line_sensor_tmp[2] and line_sensor_tmp[3]:
+                self.__moveRight(-40)
+            elif line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and not line_sensor_tmp[3]:
+                self.__moveRight(-60)
+            elif not line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
+                self.__moveLeft(-60)
+            elif line_sensor_tmp[0] and not line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
+                self.__moveLeft(-40)
+            else:
+                self.moveBackward()
 
     def line_tracing_thread(self):
         print("[INFO] Linetracing start")
