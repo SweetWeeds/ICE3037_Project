@@ -4,7 +4,11 @@ from module.wc_robo import WC_Robo
 import time
 
 # Go to designated position
-def goPos(wc_robo: WC_Robo, pos: str='A1') -> None:
+def goPos(wc_robo: WC_Robo, pos: str='A1'):
+    if (pos not in LOCATION):
+        print(f"[ERROR] There is no reserved position. [{pos}]")
+        return
+    wc_robo.dbm.updateChargingStatus(reference="wc-robo:1", chargingStatus="Moving", chargePercentage=f"0%")
     row = pos[0]    # 'A'
     col = pos[1]    # '1'
     # 1. Go to right row. ('A': 'R', 'B': 'B')
@@ -14,12 +18,24 @@ def goPos(wc_robo: WC_Robo, pos: str='A1') -> None:
         wc_robo.line_trace_partial()
     #wc_robo.line_tracing_thread_inst.do_run = False
     wc_robo.moveStop()
+
     # 2. Rotate until find column line.
     print("[INFO] Stage 2")
     clockwise = True if col == '1' else False
     print(f"[INFO] Rotate :{clockwise}")
     wc_robo.moveRotate90(clockwise=clockwise)
+
+    # 3. Set front position
     print("[INFO] Stage 3")
+    initPos = wc_robo.readPresentPos()
+    wc_robo.moveForward(10)
+    while (True):
+        dist = wc_robo.ultra_sonic.read("FRONT")
+        if (dist <= ULTRASONIC_BOUNDARY["FRONT"]["LOWER_BOUND"]):
+            break
+    wc_robo.moveStop()
+    return clockwise, initPos
+
 
 def startCharge(wc_robo: WC_Robo) -> None:
     # Initialize Database status.
@@ -40,21 +56,34 @@ def startCharge(wc_robo: WC_Robo) -> None:
     wc_robo.dbm.updateChargingStatus(reference="wc-robo:1", chargingStatus="Complete", chargePercentage="100%")
     wc_robo.ble.close()
 
-if __name__ == "__main__":
+def main():
     wc_robo = WC_Robo()
-    """
-    wc_robo.moveStop()
     while (True):
-        cmd = input("Please type command: ")
-        if (cmd == 'r'):
-            wc_robo.moveRotate()
-        elif (cmd == 's'):
-            wc_robo.moveStop()
-        elif (cmd == 'e'):
-            print(wc_robo.readPresentPos())
-    """
-    #goPos(wc_robo, 'B1')
-    startCharge(wc_robo)
-    #wc_robo.moveRotate()
-    #wc_robo.moveStop()
+        # 1. Get session from database
+        old_session = wc_robo.dbm.GetSession()
+        while (True):
+            new_session = wc_robo.dbm.GetSession()
+            if (old_session != new_session):
+                break
 
+        # 2. Go to position
+        clockwise, initPos = goPos(wc_robo, wc_robo.dbm.GetTargetPos())
+        wc_robo.setCoil()
+        startCharge(wc_robo)
+        presentPos = wc_robo.readPresentPos()
+        wc_robo.moveBackward(velocity=10)
+        while (presentPos[0] <= initPos[0] or presentPos[1] <= initPos[1]):
+            pass
+        wc_robo.moveStop()
+
+        # 3. Back to home
+        wc_robo.moveRotate90(not clockwise)
+        while (wc_robo.color_sensor.read() != ROW['HOME']):
+            wc_robo.line_trace_partial(forward=False)
+        wc_robo.moveStop()
+
+if __name__ == "__main__":
+    main()
+    #wc_robo = WC_Robo()
+    #while True:
+    #    print(wc_robo.color_sensor.read())

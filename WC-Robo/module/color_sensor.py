@@ -5,7 +5,7 @@ import adafruit_tcs34725
 R = 0
 G = 1
 B = 2
-THRESHOLD = [50, 50, 70]    # RGB Threshold
+THRESHOLD = [20, 20, 50]    # RGB Threshold
 
 class ColorSensor:
     def __init__(self) -> None:
@@ -14,7 +14,6 @@ class ColorSensor:
     def read(self) -> str:
         color_rgb_bytes_tmp = self.sensor.color_rgb_bytes
         color_rgb = [False, False, False]
-
         if (THRESHOLD[R] <= color_rgb_bytes_tmp[R]):
             color_rgb[R] = True
         if (THRESHOLD[G] <= color_rgb_bytes_tmp[G]):

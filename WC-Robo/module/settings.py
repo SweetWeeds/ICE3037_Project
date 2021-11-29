@@ -6,6 +6,7 @@ MOTOR_IDS       = [LEFT_MOTOR_ID, RIGHT_MOTOR_ID]
 BAUDRATE        = 1000000
 
 # Servo Settings
+SERVO_MIN_POS     = 20
 SERVO_MAX_DUTY    = 12   # 서보의 최대(180도) 위치의 주기
 SERVO_MIN_DUTY    = 3    # 서보의 최소(0도) 위치의 주기
 
@@ -25,11 +26,11 @@ ULTRASONIC_SENSOR_PINS ={
 
 ULTRASONIC_BOUNDARY = {
     "COIL" : {
-        "LOWER_BOUND" : 20,
+        "LOWER_BOUND" : 30,
         "UPPER_BOUND" : 100
     }, 
     "FRONT" : {
-        "LOWER_BOUND" : 30,
+        "LOWER_BOUND" : 35,
         "UPPER_BOUND" : 100
     }
 }
@@ -38,18 +39,8 @@ ULTRASONIC_BOUNDARY = {
 R = 0
 G = 1
 B = 2
-ROW = { 'A': 'R', 'B': 'B' }    # Position row's dict
+ROW = { 'A': 'R', 'B': 'B', 'HOME': 'G' }    # Position row's dict
 CONTROL_SIGNAL = { 'IDLE' : 0, 'GO_TARGET' : 1, 'SET_COIL' : 2, 'BACK_HOME' : 3 }
 STATUS = { 'STOP': 0, 'MOVING': 1, 'CHARGING': 2, 'COMPLETE': 3, 'EXCEPTION': 4 }
 HANDLING_TIME = 0.3
-LOCATION = {
-            'HOME'  : [0, 0, 0],
-            'A1'    : [R, G, R],
-            'A2'    : [R, G, B],
-            'A3'    : [R, B, R],
-            'A4'    : [R, B, G],
-            'B1'    : [G, R, B],
-            'B2'    : [G, R, G],
-            'B3'    : [B, R, G],
-            'B4'    : [R, R, R]
-        }
+LOCATION = [ 'A1', 'A2', 'B1', 'B2' ]
