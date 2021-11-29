@@ -1,5 +1,8 @@
 import os
 
+MAX_UINT32 = 4294967295
+MAX_INT32  = 2147483647
+
 if os.name == 'nt':
     import msvcrt
     def getch():
@@ -25,6 +28,7 @@ PROTOCOL_VERSION = 2.0
 # Address of parameters
 ADDR_TORQUE_ENABLE = 64
 ADDR_GOAL_VELOCITY = 104
+ADDR_PRESENT_VELOCITY = 128
 ADDR_PRESENT_POS   = 132
 
 # Constants
@@ -80,12 +84,15 @@ class MotorHandler:
         self.__error_check(dxl_comm_result, dxl_error)
 
     def readVelocity(self, ID: int) -> int:
-        dxl_goal_vel, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, ID, ADDR_GOAL_VELOCITY)
+        dxl_goal_vel, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, ID, ADDR_PRESENT_VELOCITY)
         self.__error_check(dxl_comm_result, dxl_error)
         return dxl_goal_vel
 
     def setVelocityOffset(self, ID: int, val: int) -> int:
         old_vel = self.readVelocity(ID)
+        if (old_vel > MAX_INT32):
+            old_vel = - (MAX_UINT32 - old_vel)
+        print(f"setVelocityOffset old_vel:{old_vel}, val:{val}")
         self.setVelocity(ID, old_vel + val)
         return old_vel
     

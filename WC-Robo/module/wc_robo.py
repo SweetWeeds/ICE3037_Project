@@ -198,6 +198,7 @@ class WC_Robo:
         while (True):
             currentDist = self.ultra_sonic.read("COIL")
             print(f"currentDist:{currentDist}")
+
             # Current Distance is closer than low bound limit: STOP
             if (currentDist < ULTRASONIC_BOUNDARY["COIL"]["LOWER_BOUND"]):
                 print(f"Coil setup at {currentDist}")
