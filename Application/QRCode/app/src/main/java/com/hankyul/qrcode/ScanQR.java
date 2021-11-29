@@ -40,8 +40,11 @@ public class ScanQR extends AppCompatActivity {
                 Toast.makeText(this, "취소되었습니다.", Toast.LENGTH_LONG).show();
                 this.finish();
             } else {
+                Long tsLong = System.currentTimeMillis()/1000;
+                String ts = tsLong.toString();
                 Toast.makeText(this, "스캔했습니다: " + result.getContents(), Toast.LENGTH_LONG).show();
                 this.sendRequest("wc-robo:1", result.getContents());
+                this.sendRequest("session", ts);
                 Intent intent = new Intent(ScanQR.this, StatusActivity.class);
                 startActivity(intent);
                 //this.finish();
