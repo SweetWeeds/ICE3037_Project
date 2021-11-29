@@ -83,9 +83,8 @@ def main():
         # 3. Back to home
         wc_robo.moveRotate90(not clockwise)
         color = wc_robo.color_sensor.read()
-        wc_robo.moveBackward()
         while (color != ROW['HOME']):
-            #wc_robo.line_trace_partial(forward=False)
+            wc_robo.line_trace_partial(forward=False)
             color = wc_robo.color_sensor.read()
             print(color)
         wc_robo.moveStop()
