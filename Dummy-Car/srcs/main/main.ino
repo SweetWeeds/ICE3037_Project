@@ -11,14 +11,15 @@
 
 #include "BluetoothSerial.h"
 #include "esp_bt_device.h"
+#include <string.h>
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
 #endif
 
 // Value setting
-#define CHARGE_STEP             10      // charging step by 'TIMER_INTERRUPT_TERM'
-#define TIMER_INTERRUPT_TERM    100     // milli seconds
+#define CHARGE_STEP             5      // charging step by 'TIMER_INTERRUPT_TERM'
+#define TIMER_INTERRUPT_TERM    100    // milli seconds
 
 // Pin setting
 int PIN_WIRLESS_CHARGING = 13;      // Input pin of wireless charging signal
@@ -33,6 +34,20 @@ hw_timer_t * timer = NULL;
 bool isCharging = false;
 int chargeLevel = 0;
 char serial_buf[100] = { 0, };
+
+void sendPercentage() {
+    int serial_buf_len = strlen(serial_buf);
+    Serial.println(serial_buf);
+    for (int i = 0; i < serial_buf_len; i++) {
+        //while (!SerialBT.available()) continue;
+        //SerialBT.read();
+        SerialBT.write(serial_buf[i]);
+    }
+    SerialBT.write('\0');
+    if (SerialBT.available()) {
+        
+    }
+}
 
 void IRAM_ATTR timerIntrptFunc() {
     Serial.println("Timer Interrupt Called");
@@ -58,12 +73,8 @@ void IRAM_ATTR timerIntrptFunc() {
     else                    digitalWrite(PIN_CHARGE_LEVEL_LED[3], LOW);
     if (chargeLevel >= 100) digitalWrite(PIN_CHARGE_LEVEL_LED[4], HIGH);
     else                    digitalWrite(PIN_CHARGE_LEVEL_LED[4], LOW);
-    sprintf(serial_buf, "%d%", chargeLevel);
-    int i = 0;
-    while (serial_buf[i] != 0) {
-        SerialBT.write(serial_buf[i++]);
-    }
-    Serial.println(serial_buf);
+    sprintf(serial_buf, "%d", chargeLevel);
+    sendPercentage();
 }
 
 void printDeviceAddress() {
@@ -103,6 +114,7 @@ void setup() {
         pinMode(PIN_CHARGE_LEVEL_LED[i], OUTPUT);
     }
     //attachInterrupt(digitalPinToInterrupt(PIN_WIRLESS_CHARGING), startBLE, RISING);
+    SerialBT.connected(5000);
 
     // Setup Timer Interrupt Function
     interrupt_init();

@@ -43,8 +43,7 @@ public class StatusActivity extends AppCompatActivity {
                     ChargeStatus post = snapshot.getValue(ChargeStatus.class);
                     Toast.makeText(StatusActivity.this, "getData" + post.toString(), Toast.LENGTH_SHORT).show();
                     statusTextView.setText(post.getChargingStatus());
-                    percentageTextView.setText(post.getChargePercentage() + '%');
-                    voltageTextView.setText(post.getVoltageValue() + 'V');
+                    percentageTextView.setText(post.getChargePercentage());
                 } else {
                     Toast.makeText(StatusActivity.this, "데이터 없음...", Toast.LENGTH_SHORT).show();
                 }
