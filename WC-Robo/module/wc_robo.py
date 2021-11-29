@@ -29,6 +29,7 @@ class WC_Robo:
 
         # DB Manager
         self.dbm = DB_Manager()
+        self.dbm.updateChargingStatus()
 
         # BLE Scanner
         self.ble = BluetoothScanner()

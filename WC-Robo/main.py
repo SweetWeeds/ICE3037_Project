@@ -22,7 +22,23 @@ def goPos(wc_robo: WC_Robo, pos: str='A1') -> None:
     print("[INFO] Stage 3")
 
 def startCharge(wc_robo: WC_Robo) -> None:
-    wc_robo.ble.
+    # Initialize Database status.
+    wc_robo.dbm.updateChargingStatus(reference="wc-robo:1", chargingStatus="Charging", chargePercentage="0%")
+
+    # Keep trying to connect with BLE
+    while (wc_robo.ble.connect() == False):
+        print("[INFO] Waiting for Bluetooth connection...")
+        time.sleep(0.01) # Wait for 100ms
+
+    chargeRate = wc_robo.ble.recv()
+    while (chargeRate != "100"):
+        print(f"[INFO] Current Chargerate: {chargeRate}")
+        wc_robo.dbm.updateChargingStatus(reference="wc-robo:1", chargingStatus="Charging", chargePercentage=f"{chargeRate}%")
+        chargeRate = wc_robo.ble.recv()
+
+    # Charging Complete
+    wc_robo.dbm.updateChargingStatus(reference="wc-robo:1", chargingStatus="Complete", chargePercentage="100%")
+    wc_robo.ble.close()
 
 if __name__ == "__main__":
     wc_robo = WC_Robo()
@@ -37,7 +53,8 @@ if __name__ == "__main__":
         elif (cmd == 'e'):
             print(wc_robo.readPresentPos())
     """
-    goPos(wc_robo, 'B1')
+    #goPos(wc_robo, 'B1')
+    startCharge(wc_robo)
     #wc_robo.moveRotate()
     #wc_robo.moveStop()
 

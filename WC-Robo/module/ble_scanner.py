@@ -1,18 +1,19 @@
 from bluetooth import *
 
 class BluetoothScanner:
-    def __init__(self, addr: str="F0:08:D1:F2:AC:42"):
+    def __init__(self):
         self.charge_rate = 0
 
+    def connect(self, addr: str="F0:08:D1:F2:AC:42") -> bool:
         #MAC address of ESP32
         self.addr = addr
         service_matches = find_service( address = self.addr )
 
-        self.buf_size = 1024
+        self.buf_size = 1
 
         if len(service_matches) == 0:
             print(f"couldn't find the SampleServer service (addr:{addr}")
-            sys.exit(0)
+            return False
 
         for s in range(len(service_matches)):
             print("\nservice_matches: [" + str(s) + "]:")
@@ -31,6 +32,10 @@ class BluetoothScanner:
         self.sock.connect((host, port))
 
         print("connected")
+        return True
+    
+    def close(self):
+        self.sock.close()
 
     def input_and_send(self):
         print("\nType something\n")
@@ -52,6 +57,21 @@ class BluetoothScanner:
                 else:
                     buf += data.decode('utf-8')
     
+    def recv(self) -> str:
+        buf = ""
+        while True:
+            #self.send()
+            data = self.sock.recv(self.buf_size)
+            if data:
+                if (data == b'\0'):
+                    break
+                else:
+                    buf += data.decode('utf-8')
+        self.send(b'\0')
+        return buf
+    
+    def send(self, data=b'\0'):
+        self.sock.send(data)
 
 if __name__ == "__main__":
     bs = BluetoothScanner()
