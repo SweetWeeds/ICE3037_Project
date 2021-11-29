@@ -39,6 +39,6 @@ class DB_Manager:
     def setDefaultLocation(self) -> None:
         self.__SetData("charge_request", "Home")
 
-    def updateChargingStatus(self, reference, chargingStatus, chargePercentage, voltageValue):
+    def updateChargingStatus(self, reference="wc-robo:1", chargingStatus="StandBy", chargePercentage="None", voltageValue="0"):
         dir = db.reference(f"charge_status/{reference}")
         dir.update({"chargingStatus": chargingStatus, "chargePercentage": chargePercentage, "voltageValue": voltageValue})
