@@ -70,9 +70,9 @@ def main():
         # 2. Go to position
         clockwise, initPos = goPos(wc_robo, wc_robo.dbm.GetTargetPos())
         print(f"initPos:{initPos}")
-        #wc_robo.setCoil()
-        #startCharge(wc_robo)
-        #wc_robo.setServoPos(SERVO_MIN_POS)
+        wc_robo.setCoil()
+        startCharge(wc_robo)
+        wc_robo.setServoPos(SERVO_MIN_POS)
         presentPos = wc_robo.readPresentPos()
         wc_robo.moveBackward(velocity=10)
         while (abs(presentPos[0] - initPos[0]) > 5 and abs(presentPos[1] - initPos[1]) > 5):
