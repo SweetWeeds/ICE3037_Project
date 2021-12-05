@@ -15,7 +15,7 @@ def goPos(wc_robo: WC_Robo, pos: str='A1'):
     print("[INFO] Stage 1")
     #wc_robo.line_tracing_thread_inst.start()
     while (wc_robo.color_sensor.read() != ROW[row]):
-        wc_robo.line_trace_partial()
+        wc_robo.line_trace_partial(forward=True, speed=50)
     #wc_robo.line_tracing_thread_inst.do_run = False
     wc_robo.moveStop()
 
@@ -70,12 +70,12 @@ def main():
         # 2. Go to position
         clockwise, initPos = goPos(wc_robo, wc_robo.dbm.GetTargetPos())
         print(f"initPos:{initPos}")
-        wc_robo.setCoil()
-        startCharge(wc_robo)
-        wc_robo.setServoPos(SERVO_MIN_POS)
+        #wc_robo.setCoil()
+        #startCharge(wc_robo)
+        #wc_robo.setServoPos(SERVO_MIN_POS)
         presentPos = wc_robo.readPresentPos()
-        wc_robo.moveBackward(velocity=5)
-        while (abs(presentPos[0] - initPos[0]) > 20 and abs(presentPos[1] - initPos[1]) > 20):
+        wc_robo.moveBackward(velocity=10)
+        while (abs(presentPos[0] - initPos[0]) > 5 and abs(presentPos[1] - initPos[1]) > 5):
             presentPos = wc_robo.readPresentPos()
             print(f"presentPos{presentPos}")
         wc_robo.moveStop()
@@ -84,15 +84,16 @@ def main():
         wc_robo.moveRotate90(not clockwise)
         color = wc_robo.color_sensor.read()
         while (color != ROW['HOME']):
-            wc_robo.line_trace_partial(forward=False)
+            wc_robo.line_trace_partial(forward=False, speed=30)
             color = wc_robo.color_sensor.read()
             print(color)
         wc_robo.moveStop()
         print("[INFO] Request Complete!")
 
 if __name__ == "__main__":
+    #wc_robo = WC_Robo()
+    #exit()
     main()
-    wc_robo = WC_Robo()
     #wc_robo.moveStop()
     #while True:
     #    print(wc_robo.color_sensor.read())

@@ -250,32 +250,26 @@ class WC_Robo:
                 print(f"[ERROR] Status code is not matching in dictinoary. (STATUS_CODE:{self.status})")
                 pass
 
-    def line_trace_partial(self, forward=True):
+    def line_trace_partial(self, forward=True, speed=10):
         line_sensor_tmp = self.line_sensor.read()
-        if forward:
-            # Turn Left (Strong)
-            if line_sensor_tmp[0] and line_sensor_tmp[1] and not line_sensor_tmp[2] and line_sensor_tmp[3]:
-                self.__moveRight(40)
-            elif line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and not line_sensor_tmp[3]:
-                self.__moveRight(60)
-            elif not line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
-                self.__moveLeft(60)
-            elif line_sensor_tmp[0] and not line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
-                self.__moveLeft(40)
-            else:
-                self.moveForward()
+        # Turn Left (Strong)
+        if line_sensor_tmp[0] and line_sensor_tmp[1] and not line_sensor_tmp[2] and line_sensor_tmp[3]:
+            self.moveStop()
+            self.__moveRight(20)
+        elif line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and not line_sensor_tmp[3]:
+            self.moveStop()
+            self.__moveRight(30)
+        elif not line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
+            self.moveStop()
+            self.__moveLeft(30)
+        elif line_sensor_tmp[0] and not line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
+            self.moveStop()
+            self.__moveLeft(20)
         else:
-            # Turn Left (Strong)
-            if line_sensor_tmp[0] and line_sensor_tmp[1] and not line_sensor_tmp[2] and line_sensor_tmp[3]:
-                self.__moveRight(-40)
-            elif line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and not line_sensor_tmp[3]:
-                self.__moveRight(-60)
-            elif not line_sensor_tmp[0] and line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
-                self.__moveLeft(-60)
-            elif line_sensor_tmp[0] and not line_sensor_tmp[1] and line_sensor_tmp[2] and line_sensor_tmp[3]:
-                self.__moveLeft(-40)
+            if forward:
+                self.moveForward(speed)
             else:
-                self.moveBackward()
+                self.moveBackward(speed)
 
     def line_tracing_thread(self):
         print("[INFO] Linetracing start")
